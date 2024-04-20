@@ -5,6 +5,7 @@ go 1.22.1
 require golang.org/x/exp v0.0.0-20240404231335-c0f41cb1a7a0
 
 require (
+	github.com/approvals/go-approval-tests v0.0.0-20240417152556-434b9105e958 // indirect
 	github.com/kisielk/errcheck v1.7.0 // indirect
 	golang.org/x/mod v0.17.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect

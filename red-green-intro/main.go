@@ -9,6 +9,6 @@ const PORT = "localhost:6942"
 
 func main() {
 	store := NewInMemoryPlayerStore()
-	server := &PlayerServer{store}
+	server := NewPlayerServer(store)
 	log.Fatal(http.ListenAndServe(PORT, server))
 }

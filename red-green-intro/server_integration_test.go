@@ -7,7 +7,13 @@ import (
 )
 
 func TestRecordingWinsAndRetrievingThem(t *testing.T) {
-	store := NewInMemoryPlayerStore()
+	db, clean := createTempFile(t, "[]")
+	defer clean()
+
+	store, err := NewFileSystemPlayerStore(db)
+
+	assertNoError(t, err)
+
 	server := NewPlayerServer(store)
 	player := "padul"
 

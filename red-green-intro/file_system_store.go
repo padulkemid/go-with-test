@@ -14,9 +14,9 @@ type FileSystemPlayerStore struct {
 }
 
 func (f *FileSystemPlayerStore) GetLeague() League {
-  sort.Slice(f.league, func (i, j int) bool  {
-    return f.league[i].Wins > f.league[j].Wins
-  })
+	sort.Slice(f.league, func(i, j int) bool {
+		return f.league[i].Wins > f.league[j].Wins
+	})
 
 	return f.league
 }
@@ -74,4 +74,22 @@ func NewFileSystemPlayerStore(db *os.File) (*FileSystemPlayerStore, error) {
 		json.NewEncoder(&tape{db}),
 		l,
 	}, nil
+}
+
+func FileSystemPlayerStoreFromFile(path string) (*FileSystemPlayerStore, func(), error) {
+	db, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0666)
+	if err != nil {
+		return nil, nil, fmt.Errorf("problem opening %s => %v", path, err)
+	}
+
+	closeFn := func() {
+		db.Close()
+	}
+
+	store, err := NewFileSystemPlayerStore(db)
+	if err != nil {
+		return nil, nil, fmt.Errorf("problem creating file system player store %s => %v", path, err)
+	}
+
+	return store, closeFn, nil
 }

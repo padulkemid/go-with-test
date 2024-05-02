@@ -4,25 +4,20 @@ import (
 	poker "hello/red-green-intro"
 	"log"
 	"net/http"
-	"os"
 )
 
-const PORT = "localhost:6942"
-const DB_FILE_NAME = "game.db.json"
+const (
+	PORT         = "localhost:6942"
+	DB_FILE_NAME = "game.db.json"
+)
 
 func main() {
-	db, err := os.OpenFile(DB_FILE_NAME, os.O_RDWR|os.O_CREATE, 0666)
-
+	store, close, err := poker.FileSystemPlayerStoreFromFile(DB_FILE_NAME)
 	if err != nil {
-		log.Fatalf("problem opening %s -> %v", DB_FILE_NAME, err)
+		log.Fatal(err)
 	}
 
-	store, err := poker.NewFileSystemPlayerStore(db)
-
-	if err != nil {
-		log.Fatalf("problem creating file system for store -> %v \n", err)
-	}
-
+	defer close()
 
 	server := poker.NewPlayerServer(store)
 

@@ -1,4 +1,4 @@
-package main
+package poker
 
 type InMemoryPlayerStore struct {
 	store map[string]int

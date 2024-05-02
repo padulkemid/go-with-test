@@ -1,6 +1,7 @@
 package main
 
 import (
+	poker "hello/red-green-intro"
 	"log"
 	"net/http"
 	"os"
@@ -16,14 +17,14 @@ func main() {
 		log.Fatalf("problem opening %s -> %v", DB_FILE_NAME, err)
 	}
 
-	store, err := NewFileSystemPlayerStore(db)
+	store, err := poker.NewFileSystemPlayerStore(db)
 
 	if err != nil {
 		log.Fatalf("problem creating file system for store -> %v \n", err)
 	}
 
 
-	server := NewPlayerServer(store)
+	server := poker.NewPlayerServer(store)
 
 	if err := http.ListenAndServe(PORT, server); err != nil {
 		log.Fatalf("could not listen on port %s -> %v", PORT, err)

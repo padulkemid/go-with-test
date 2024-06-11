@@ -8,7 +8,10 @@ import (
 	"strings"
 )
 
-const PlayerPrompt = "Please enter the number of players: "
+const (
+	PlayerPrompt = "Please enter the number of players: "
+	SillyWord    = "silly n"
+)
 
 type CLI struct {
 	in   *bufio.Scanner
@@ -25,10 +28,14 @@ func (c *CLI) readLine() string {
 func (c *CLI) PlayPoker() {
 	fmt.Fprint(c.out, PlayerPrompt)
 
-  numOfPlayerIn := c.readLine()
-	numOfPlayers, _ := strconv.Atoi(strings.Trim(numOfPlayerIn, "\n"))
+	numOfPlayerIn := c.readLine()
+	numOfPlayers, err := strconv.Atoi(strings.Trim(numOfPlayerIn, "\n"))
+	if err != nil {
+		fmt.Fprint(c.out, SillyWord)
+		return
+	}
 
-  c.game.Start(numOfPlayers)
+	c.game.Start(numOfPlayers)
 
 	i := c.readLine()
 	ew := extractWinner(i)
@@ -42,8 +49,8 @@ func extractWinner(i string) string {
 
 func NewCli(in io.Reader, out io.Writer, game Texas) *CLI {
 	return &CLI{
-    in: bufio.NewScanner(in),
-    out: out,
-    game: game,
+		in:   bufio.NewScanner(in),
+		out:  out,
+		game: game,
 	}
 }

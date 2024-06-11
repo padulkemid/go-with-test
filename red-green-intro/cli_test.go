@@ -28,6 +28,21 @@ func (s *SpyBlindAlerter) ScheduleAlertAt(dur time.Duration, amt int) {
 	s.alerts = append(s.alerts, newAlert)
 }
 
+type GameSpy struct {
+	StartedWith  int
+	FinishedWith string
+	StartCalled  bool
+}
+
+func (g *GameSpy) Start(p int) {
+	g.StartedWith = p
+	g.StartCalled = true
+}
+
+func (g *GameSpy) Finish(w string) {
+	g.FinishedWith = w
+}
+
 func assertScheduleAlert(t testing.TB, got, want SpyAlert) {
 	t.Helper()
 	if got.amount != want.amount {
@@ -36,6 +51,14 @@ func assertScheduleAlert(t testing.TB, got, want SpyAlert) {
 
 	if got.scheduledAt != want.scheduledAt {
 		t.Errorf("got scheduled time of %v, want %v", got.scheduledAt, want.scheduledAt)
+	}
+}
+
+func assertString(t testing.TB, got, want string) {
+	t.Helper()
+
+	if got != want {
+		t.Errorf("got %q, want %q", got, want)
 	}
 }
 
@@ -149,4 +172,43 @@ func TestCli(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("it prompts the user to enter number of players and start the game", func(t *testing.T) {
+		out := &bytes.Buffer{}
+		in := strings.NewReader("7\n")
+		game := &GameSpy{}
+
+		cli := poker.NewCli(in, out, game)
+		cli.PlayPoker()
+
+		got := out.String()
+		want := poker.PlayerPrompt
+
+		assertString(t, got, want)
+
+		if game.StartedWith != 7 {
+			t.Errorf("wanted Start called with 7 but got %d", game.StartedWith)
+		}
+	})
+
+	t.Run(
+		"it prints an error when a non numeric value is entered and does not start the game",
+		func(t *testing.T) {
+			out := &bytes.Buffer{}
+			in := strings.NewReader("Pies\n")
+			game := &GameSpy{}
+
+			cli := poker.NewCli(in, out, game)
+			cli.PlayPoker()
+
+			got := out.String()
+			want := poker.PlayerPrompt + poker.SillyWord
+
+			assertString(t, got, want)
+
+			if game.StartCalled {
+				t.Errorf("game shouldn't start")
+			}
+		},
+	)
 }

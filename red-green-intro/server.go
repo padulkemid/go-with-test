@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"html/template"
+	"io"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gorilla/websocket"
@@ -37,6 +39,7 @@ type PlayerServer struct {
 	store PlayerStore
 	http.Handler
 	template *template.Template
+	texas Texas
 }
 
 func (p *PlayerServer) showScore(w http.ResponseWriter, player string) {
@@ -80,11 +83,15 @@ func (p *PlayerServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 	conn, _ := upgrader.Upgrade(w, r, nil)
 
 	_, msg, _ := conn.ReadMessage()
+	numOfPlayers, _ := strconv.Atoi(string(msg))
 
-	p.store.RecordWin(string(msg))
+	p.texas.Start(numOfPlayers, io.Discard)
+
+	_, winner, _ := conn.ReadMessage()
+	p.texas.Finish(string(winner))
 }
 
-func NewPlayerServer(store PlayerStore) (*PlayerServer, error) {
+func NewPlayerServer(store PlayerStore, texas Texas) (*PlayerServer, error) {
 	p := new(PlayerServer)
 
 	tmpl, err := template.ParseFiles(templateFileName)
@@ -94,6 +101,7 @@ func NewPlayerServer(store PlayerStore) (*PlayerServer, error) {
 
 	p.template = tmpl
 	p.store = store
+	p.texas = texas
 
 	r := http.NewServeMux()
 

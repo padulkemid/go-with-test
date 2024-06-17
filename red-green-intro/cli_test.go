@@ -23,7 +23,7 @@ type SpyBlindAlerter struct {
 	alerts []SpyAlert
 }
 
-func (s *SpyBlindAlerter) ScheduleAlertAt(dur time.Duration, amt int) {
+func (s *SpyBlindAlerter) ScheduleAlertAt(dur time.Duration, amt int, to io.Writer) {
 	newAlert := SpyAlert{dur, amt}
 	s.alerts = append(s.alerts, newAlert)
 }
@@ -34,7 +34,7 @@ type GameSpy struct {
 	StartCalled  bool
 }
 
-func (g *GameSpy) Start(p int) {
+func (g *GameSpy) Start(p int, to io.Writer) {
 	g.StartedWith = p
 	g.StartCalled = true
 }

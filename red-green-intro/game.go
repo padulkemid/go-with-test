@@ -13,7 +13,7 @@ type Game struct {
 }
 
 func (g *Game) Start(numOfPlayers int) {
-	increment := time.Duration(5+numOfPlayers) * time.Minute
+	increment := time.Duration(5+numOfPlayers) * time.Second
 
 	blinds := []int{100, 200, 300, 400, 500, 600, 800, 1000, 2000, 4000, 8000}
 	blindTime := 0 * time.Second

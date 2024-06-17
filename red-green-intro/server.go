@@ -3,14 +3,24 @@ package poker
 import (
 	"encoding/json"
 	"fmt"
+	"html/template"
 	"net/http"
 	"strings"
+
+	"github.com/gorilla/websocket"
 )
 
 const (
-	contentType = "content-type"
-	jsonType    = "application/json"
+	contentType      = "content-type"
+	jsonType         = "application/json"
+	bufferSize       = 1024
+	templateFileName = "game.html"
 )
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  bufferSize,
+	WriteBufferSize: bufferSize,
+}
 
 type Player struct {
 	Name string
@@ -26,6 +36,7 @@ type PlayerStore interface {
 type PlayerServer struct {
 	store PlayerStore
 	http.Handler
+	template *template.Template
 }
 
 func (p *PlayerServer) showScore(w http.ResponseWriter, player string) {
@@ -61,15 +72,36 @@ func (p *PlayerServer) playersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewPlayerServer(store PlayerStore) *PlayerServer {
+func (p *PlayerServer) gameHandler(w http.ResponseWriter, r *http.Request) {
+	p.template.Execute(w, nil)
+}
+
+func (p *PlayerServer) wsHandler(w http.ResponseWriter, r *http.Request) {
+	conn, _ := upgrader.Upgrade(w, r, nil)
+
+	_, msg, _ := conn.ReadMessage()
+
+	p.store.RecordWin(string(msg))
+}
+
+func NewPlayerServer(store PlayerStore) (*PlayerServer, error) {
 	p := new(PlayerServer)
+
+	tmpl, err := template.ParseFiles(templateFileName)
+	if err != nil {
+		return nil, fmt.Errorf("problem opening %s %v", templateFileName, err)
+	}
+
+	p.template = tmpl
 	p.store = store
 
 	r := http.NewServeMux()
 
 	r.Handle("/league", http.HandlerFunc(p.leagueHandler))
 	r.Handle("/players/", http.HandlerFunc(p.playersHandler))
+	r.Handle("/game", http.HandlerFunc(p.gameHandler))
+	r.Handle("/ws", http.HandlerFunc(p.wsHandler))
 	p.Handler = r
 
-	return p
+	return p, nil
 }
